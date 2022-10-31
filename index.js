@@ -1,13 +1,13 @@
 const express = require("express");
+const QRCode = require("qrcode");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json());
 
-const QRCode = require("qrcode");
+const PORT = process.env.PORT || 3000;
 
 app.get("/api/v1", async (req, res) => {
   const { data } = req.query;
-  console.log(req.query);
 
   if (!data) {
     res.json({ error: "parameter data required to string" });
@@ -16,15 +16,26 @@ app.get("/api/v1", async (req, res) => {
 
   const url = await QRCode.toDataURL(data);
 
-  console.log(url.indexOf(","), url);
-
-  res.json({ base64: url.substring(url.indexOf(",") + 1), dataBase64: url });
+  res.json({ base64: url.substring(url.indexOf(",") + 1), url });
 });
 
-app.get("/", (req, res) => {
+app.post("/api/v1", async (req, res) => {
+  const data = req.body?.data;
+
+  if (!data) {
+    res.json({ error: "body is missing data property" });
+    return;
+  }
+
+  const url = await QRCode.toDataURL(data);
+
+  res.json({ base64: url.substring(url.indexOf(",") + 1), url });
+});
+
+app.get("/", (_, res) => {
   res.json({ api: "/api/v1" });
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port http://localhost:${PORT}`);
+  console.log(`App listening on port http://localhost:${PORT}`);
 });
